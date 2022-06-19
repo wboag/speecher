@@ -1,8 +1,16 @@
 <!doctype html>
 <html>
   <body>
-    <p> {{ name }} </p>
+    <p> {{ description }} </p>
 	<img src="{{filename}}" alt="Uploaded image"></img>
+
+    <br>
+    <br>
+
+    <audio controls>
+      <source src="{{mp3}}" type="audio/mpeg">
+      Your browser does not support the audio tag.
+    </audio>
 
   </body>
 </html>
