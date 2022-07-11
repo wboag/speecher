@@ -20,7 +20,8 @@ def preprocess_for_pyttsx3(text):
     pass
 
     # pyttsx3 seems to only read one sentence, so make it one larger sentence
-    text = re.sub('[.,!?]', ' ', text)
+    text = re.sub('[^0-9a-zA-Z ]+', ' ', text)
+    text = re.sub('\n+', ' ', text)
     return text
 
 

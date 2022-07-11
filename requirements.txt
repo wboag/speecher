@@ -1,3 +1,5 @@
 flask
 pyttsx3
 pydub
+pandas
+dash
