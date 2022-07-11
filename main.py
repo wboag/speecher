@@ -524,7 +524,7 @@ def text_to_speech(n_clicks, tabs, pdf_info_s):
             #print(textbox)
             texts.append(textbox['text'])
     text = ' '.join(texts)
-    print(text)
+    #print(text)
 
     #text = 'I love willie.'
     mp3_filename = text_to_mp3(text, name='demo', overwrite=True)

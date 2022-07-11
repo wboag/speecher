@@ -1,5 +1,5 @@
 flask
-gTTS
+pydub
 pandas
 dash
 pdf2image
