@@ -1,5 +1,8 @@
 flask
-pyttsx3
-pydub
+gTTS
 pandas
 dash
+pdf2image
+pdfminer
+pdfminer.six
+bs4

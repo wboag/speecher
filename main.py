@@ -527,13 +527,8 @@ def text_to_speech(n_clicks, tabs, pdf_info_s):
     print(text)
 
     #text = 'I love willie.'
-    mp3_filename = text_to_mp3(text, name='demo', rate=200, overwrite=True)
+    mp3_filename = text_to_mp3(text, name='demo', overwrite=True)
     return [html.Source(src=mp3_filename, type='audio/mpeg')]
-    
-    
-    
-    
-    
     
     
     
