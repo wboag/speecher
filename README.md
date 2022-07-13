@@ -1,5 +1,9 @@
 # speecher
 
-First experience building a web app that lets you upload a file (image/gif) and then displays it.
+First attempt at the PDF-to-mp3 app.
 
-Most of this was very straightforward, the only challenge I ran into was that I needed to save the files in the static/ folder in order to be able to display them in the HTML. Storing in an unexposed folder led to "Unable to load" issues.
+Notes
+
+    - The current approach uses the espeak library to do text-to-speech because pyttsx3 wasnt working and gTTS throttled too much. Unfortunately, espeak is very robotic-y. Would love to improve in the future.
+
+    - On AWS ec2, it was very hard to get the audio processing to run. Here is a way that worked for installing ffmpeg: https://www.maskaravivek.com/post/how-to-install-ffmpeg-on-ec2-running-amazon-linux/

@@ -21,14 +21,14 @@ from source.tts import text_to_mp3
 
 
 # File paths
-PROJECT_DIR = '/Users/wboag/Desktop/webapps/speecher'
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Where to store annotations
 anns_dir = img_file = os.path.join(PROJECT_DIR, 'static/ml')
 
 
 # Where to store PDFs uploaded to the server
-UPLOAD_DIRECTORY = "/Users/wboag/Desktop/webapps/speecher/static/assets"
+UPLOAD_DIRECTORY = os.path.join(PROJECT_DIR, 'static', 'assets')
 if not os.path.exists(UPLOAD_DIRECTORY):
     os.makedirs(UPLOAD_DIRECTORY)
 
@@ -640,4 +640,4 @@ app.layout = html.Div([
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8062)
+    app.run_server(debug=True, host='0.0.0.0', port=8062)
