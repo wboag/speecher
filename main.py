@@ -1,7 +1,8 @@
 import dash
 from dash import html, dcc, Input, Output, State, ALL, MATCH
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, request
 
+from datetime import datetime
 import os
 import pickle
 import json
@@ -43,7 +44,7 @@ def save_file(name, content):
     """Decode and store a file uploaded with Plotly Dash."""
     data = content.encode("utf8").split(b";base64,")[1]
     filename = os.path.join(UPLOAD_DIRECTORY, name)
-    print(f'saving to {filename}')
+    print(f'[{datetime.now()}] IP=[{request.remote_addr}] saving to {filename}')
     with open(filename, "wb") as fp:
         fp.write(base64.decodebytes(data))
         
@@ -112,7 +113,7 @@ def pdf_to_images(pdf_file):
     img_dir = '.'
     img_dir = f'static/assets/images/{pdfname}'
     if not os.path.exists(img_dir):
-        print(f'Making tmp image assets dir: {img_dir}')
+        print(f'[{datetime.now()}] IP=[{request.remote_addr}] Making tmp image assets dir: {img_dir}')
         os.mkdir(img_dir)
 
         # Save images to temp dir
@@ -135,7 +136,7 @@ def extract_textboxes(pdf_file):
     html_text = output_string.getvalue()
 
     # Parse HTML
-    soup = BeautifulSoup(html_text)
+    soup = BeautifulSoup(html_text, 'html.parser')
     
     ### Extract the coordinates of each text box
     # Extract where each PDF page begins in HTML pixel-space
@@ -223,6 +224,9 @@ def load_uploaded_pdf(uploaded_filename, uploaded_file_content, old_pdf_info_s, 
     """Save uploaded files and regenerate the file list."""
     
     ### Error Checking & administrivia
+
+    # TODO: this breaks if the PDF isnt landscape throughout the whole document.
+    pass
 
     # This *shouldnt* run unless a new pdf was uploaded. Reloading Tabs.children (to switch pdf pages) doesnt count
     # If there is an "update" (aka new Tabs.children) but no real change, then skip.
@@ -400,8 +404,12 @@ def update_pdf_info_router(uploaded_filename, uploaded_file_content,
 
     # TODO: this is ugly & clumsy, passing large 'tabs' because I need to modify annotations in 2 different places
     #       but dash only allows one callback to cover a given Output
-    
+
     triggered_id = dash.callback_context.triggered_id
+
+    # TODO: log info in a database
+    print(f'[{datetime.now()}] IP=[{request.remote_addr}] called {triggered_id}')
+
     #print('TRIGGERED:', triggered_id)
     if triggered_id is None:
         return  tabs, tabval, old_pdf_info_s, current_pdf_name, dropdown
@@ -506,10 +514,16 @@ def text_to_speech(n_clicks, tabs, pdf_info_s):
     if dash.callback_context.triggered[0]['value'] is None:
         return 'ok'
     
+    # TODO: theres an error if the TTS button is pushed twice. should be fixed via long callback
+    pass
+
     # Get state information from the html layout
     pdf_info = json.loads(pdf_info_s)
     textboxes = {int(k):v for k,v in pdf_info['textboxes'].items()}
     annotations = pdf_info['annotations']
+
+    filename = pdf_info['annotation_name']
+    print(f'[{datetime.now()}] IP=[{request.remote_addr}] TTS for {filename}')
 
     # Which textboxes to include?
     texts = []
@@ -526,8 +540,9 @@ def text_to_speech(n_clicks, tabs, pdf_info_s):
     text = ' '.join(texts)
     #print(text)
 
-    #text = 'I love willie.'
-    mp3_filename = text_to_mp3(text, name='demo', overwrite=True)
+    basename = filename[:-4]  # remove ".pdf"
+    mp3_filename, tts_out = text_to_mp3(text, name=basename, overwrite=True)
+    print(f'[{datetime.now()}] IP=[{request.remote_addr}] {tts_out}')
     return [html.Source(src=mp3_filename, type='audio/mpeg')]
     
     

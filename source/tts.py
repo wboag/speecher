@@ -69,12 +69,12 @@ def text_to_mp3(text, name='', overwrite=False):
         AudioSegment.from_wav(wav_file).export(asset_filename, format="mp3")
         os.remove(wav_file)
 
-        print(f'saved audio file {mp3_filename}')
+        output = f'saved audio file {mp3_filename}'
 
     else:
-        print(f'audio file {mp3_filename} already exists')
+        output = f'audio file {mp3_filename} already exists'
 
-    return asset_filename
+    return asset_filename, output
 
 
 
