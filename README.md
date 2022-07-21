@@ -2,7 +2,19 @@
 
 First attempt at the PDF-to-mp3 app.
 
-Notes
+
+# Setting up database
+
+    $ export FLASK_APP=main
+
+    $ flask shell
+
+	>>> from main import db, ActivityLog
+
+	>>> db.create_all()
+
+
+# Notes
 
     - The current approach uses the espeak library to do text-to-speech because pyttsx3 wasnt working and gTTS throttled too much. Unfortunately, espeak is very robotic-y. Would love to improve in the future.
 

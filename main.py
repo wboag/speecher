@@ -2,6 +2,9 @@ import dash
 from dash import html, dcc, Input, Output, State, ALL, MATCH
 from flask import Flask, send_from_directory, request
 
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import func
+
 from datetime import datetime
 import os
 import pickle
@@ -44,7 +47,8 @@ def save_file(name, content):
     """Decode and store a file uploaded with Plotly Dash."""
     data = content.encode("utf8").split(b";base64,")[1]
     filename = os.path.join(UPLOAD_DIRECTORY, name)
-    print(f'[{datetime.now()}] IP=[{request.remote_addr}] saving to {filename}')
+
+    print_and_log(f'saving to {filename}')
     with open(filename, "wb") as fp:
         fp.write(base64.decodebytes(data))
         
@@ -59,6 +63,14 @@ def build_annotation_filename(annotation_name):
 #####################################
 ##            Helpers              ##
 #####################################
+
+
+def print_and_log(content):
+    print(f'[{datetime.now()}] IP=[{request.remote_addr}] {content}')
+    entry = ActivityLog(user=request.remote_addr, activity=content)
+    db.session.add(entry)
+    db.session.commit()
+
 
 
 def find_top(vals, top):
@@ -113,7 +125,8 @@ def pdf_to_images(pdf_file):
     img_dir = '.'
     img_dir = f'static/assets/images/{pdfname}'
     if not os.path.exists(img_dir):
-        print(f'[{datetime.now()}] IP=[{request.remote_addr}] Making tmp image assets dir: {img_dir}')
+        print_and_log(f'Making tmp image assets dir: {img_dir}')
+
         os.mkdir(img_dir)
 
         # Save images to temp dir
@@ -372,6 +385,22 @@ def download(path):
 
 
 
+# Connect app to database
+server.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(PROJECT_DIR, 'database.db')
+server.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(server)
+
+class ActivityLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    user = db.Column(db.String(20), nullable=False) # IP address, maybe will switch to usernames
+    activity = db.Column(db.Text)
+
+    def __repr__(self):
+        return f'[{self.created_at}] user=[{self.user}] {self.activity}'
+
+
+
 # pdf_info updated by uploading new PDF _or_ saving annotations 
 @app.callback(
     [
@@ -395,7 +424,7 @@ def download(path):
      State('tabs-example-graph', 'value')
 
     ],
-    prevent_initial_call=True
+    #prevent_initial_call=True
 )
 def update_pdf_info_router(uploaded_filename, uploaded_file_content,
                       s_clicks,
@@ -406,12 +435,9 @@ def update_pdf_info_router(uploaded_filename, uploaded_file_content,
     #       but dash only allows one callback to cover a given Output
 
     triggered_id = dash.callback_context.triggered_id
-
-    # TODO: log info in a database
-    print(f'[{datetime.now()}] IP=[{request.remote_addr}] called {triggered_id}')
-
-    #print('TRIGGERED:', triggered_id)
+    print_and_log(f'called {triggered_id}')
     if triggered_id is None:
+        print_and_log('new session')
         return  tabs, tabval, old_pdf_info_s, current_pdf_name, dropdown
 
         
@@ -440,7 +466,7 @@ def update_pdf_info_router(uploaded_filename, uploaded_file_content,
         return new_tabs, new_tabval, new_pdf_info_s, current_pdf_name, dropdown
 
     else:
-        print('PANIC!!!')
+        print_and_log('PANIC!!! triggered_id=[{triggered_id}]')
         return tabs, tabval, old_pdf_info_s, current_pdf_name, dropdown
 
 
@@ -459,6 +485,7 @@ def toggle_box(n_clicks, style, uclicks, slicks, tabs_value):
     
     # Do nothing on initialization call
     if trigger_id_d is None:
+        print('initialization call for toggle_box')
         return style
     
     # Determine which button was clicked
@@ -508,7 +535,8 @@ def toggle_box(n_clicks, style, uclicks, slicks, tabs_value):
 @app.callback(
     Output('mp3-player', 'children'),
     [Input('tts-button', 'n_clicks'), State('tabs-example-graph', 'children'),
-     State('pdf_info', 'data')]
+     State('pdf_info', 'data')],
+    prevent_initial_call=True
 )
 def text_to_speech(n_clicks, tabs, pdf_info_s):
     if dash.callback_context.triggered[0]['value'] is None:
@@ -523,7 +551,7 @@ def text_to_speech(n_clicks, tabs, pdf_info_s):
     annotations = pdf_info['annotations']
 
     filename = pdf_info['annotation_name']
-    print(f'[{datetime.now()}] IP=[{request.remote_addr}] TTS for {filename}')
+    print_and_log(f'TTS for {filename}')
 
     # Which textboxes to include?
     texts = []
@@ -542,7 +570,7 @@ def text_to_speech(n_clicks, tabs, pdf_info_s):
 
     basename = filename[:-4]  # remove ".pdf"
     mp3_filename, tts_out = text_to_mp3(text, name=basename, overwrite=True)
-    print(f'[{datetime.now()}] IP=[{request.remote_addr}] {tts_out}')
+    print_and_log(tts_out)
     return [html.Source(src=mp3_filename, type='audio/mpeg')]
     
     
