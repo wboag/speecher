@@ -49,6 +49,7 @@ def text_to_mp3(text, name='', overwrite=False):
         basename = f'{len(os.listdir(MP3_DIR))}'
     else:
         basename = f'{name}'
+    basename = re.sub('[^0-9a-zA-Z_]+', '_', basename) # dont let weird filenames crash
     asset_filename = os.path.join(RELATIVE_MP3_PATH, f'{basename}.mp3')
 
     mp3_filename = os.path.join(MP3_DIR, f'{basename}.mp3')
