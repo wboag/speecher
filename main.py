@@ -424,6 +424,10 @@ def run_on_refresh(data):
      Output('pdf_info','data'),
      Output('div-filename', 'children'),
      Output('dropdown-pages-holder', 'children'),
+     Output('save-ann-button', 'disabled'),
+     Output('unselect-button', 'disabled'),
+     Output('select-button', 'disabled'),
+     Output('tts-button', 'disabled'),
 
     ],
     [Input("upload-data", "filename"), Input("upload-data", "contents"), 
@@ -452,13 +456,19 @@ def update_pdf_info_router(uploaded_filename, uploaded_file_content,
     triggered_id = dash.callback_context.triggered_id
     print_and_log(f'called {triggered_id}')
     if triggered_id is None:
-        return  tabs, tabval, old_pdf_info_s, current_pdf_name, dropdown
-
+        return [dash.no_update for _ in range(9)]
         
     elif triggered_id == 'upload-data':
         pdf_info_s, pdfname, new_dropdown = load_uploaded_pdf(uploaded_filename, uploaded_file_content,
                                                               old_pdf_info_s, current_pdf_name,
                                                               dropdown, dropdown_val)
+        # If uploaded non-pdf, then dont change anything (including button activation)
+        print(pdfname)
+        if 'File must end in ".pdf"' in pdfname.children:
+            print('here')
+            updates = [dash.no_update for _ in range(9)]
+            updates[3] = pdfname
+            return updates
         
         # throw out old tabs (to avoid confusing update_page_tabs() with previous pdf's tabs)
         tabs = tabs[:1]
@@ -466,11 +476,11 @@ def update_pdf_info_router(uploaded_filename, uploaded_file_content,
         # If we didnt have ugly mega-callback, this would been able to figure on its own after the above finished
         new_dropdown_val = new_dropdown[0]['props']['value'] 
         new_tabs, new_pdf_info_s = update_page_tabs(new_dropdown_val, tabs, pdf_info_s)
-        return new_tabs, tabval, pdf_info_s, pdfname, new_dropdown
+        return new_tabs, tabval, pdf_info_s, pdfname, new_dropdown, False, False, False, False
         
     elif triggered_id == 'save-ann-button':
         save_local_annotations(tabs, uploaded_filename, old_pdf_info_s)
-        return tabs, tabval, old_pdf_info_s, current_pdf_name, dropdown
+        return tabs, tabval, old_pdf_info_s, current_pdf_name, dropdown, False, False, False, False
     
     elif triggered_id == 'dropdown-pages':
         new_tabs, new_pdf_info_s = update_page_tabs(dropdown_val, tabs, old_pdf_info_s)
@@ -480,11 +490,11 @@ def update_pdf_info_router(uploaded_filename, uploaded_file_content,
         low  = int(matches[0])-1
         new_tabval = f'tab-{low}-example-graph'
                 
-        return new_tabs, new_tabval, new_pdf_info_s, current_pdf_name, dropdown
+        return new_tabs, new_tabval, new_pdf_info_s, current_pdf_name, dropdown, False, False, False, False
 
     else:
         print_and_log(f'PANIC!!! triggered_id=[{triggered_id}]')
-        return tabs, tabval, old_pdf_info_s, current_pdf_name, dropdown
+        return tabs, tabval, old_pdf_info_s, current_pdf_name, dropdown, False, False, False, False
 
 
 
@@ -714,18 +724,22 @@ app.layout = html.Div([
             dcc.Store(id='pdf_info', data='', storage_type='memory'),
 
             html.Button('Save Annotations', id='save-ann-button',
+                        disabled=True,
                         style={'position':'absolute', 'top': '40px', 'left':f'{650+tabwidth}px',
                                'height':'30px', 'width':'150px',
                                'borderRadius':'10px 10px',}),
             html.Button('Unselect All on Page', id='unselect-button',
+                        disabled=True,
                         style={'position':'absolute', 'top':'70px', 'left':f'{650+tabwidth}px',
                                'height':'30px', 'width':'150px',
                                'borderRadius':'10px 10px',}),
             html.Button('Select All on Page', id='select-button',
+                        disabled=True,
                         style={'position':'absolute', 'top':'100px', 'left':f'{650+tabwidth}px',
                                'height':'30px', 'width':'150px',
                                'borderRadius':'10px 10px',}),
             html.Button('Create MP3', id='tts-button',
+                        disabled=True,
                         style={'position':'absolute', 'top':'130px', 'left':f'{650+tabwidth}px',
                                'height':'30px', 'width':'150px',
                                'borderRadius':'10px 10px',
