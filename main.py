@@ -250,8 +250,9 @@ def load_uploaded_pdf(uploaded_filename, uploaded_file_content, old_pdf_info_s, 
     
     # Assert must be a PDF
     if not uploaded_filename.endswith('.pdf'):
-        # TODO:have some kind of "mus upload .pdf" error message
-        return old_pdf_info_s, current_pdf_name, dropdown
+        # Must upload ".pdf" file. Update description
+        new_filename_text = dcc.Markdown(f'File must end in ".pdf". Drag and drop or click to select a file to upload.', style={'color':'red'})
+        return old_pdf_info_s, new_filename_text, dropdown
     
     ### Load and Process PDF
     # Save uploaded pdf to server
@@ -679,8 +680,8 @@ home_layout = html.Div(id=f'home-layout',
                                             ),
                                  html.P(dcc.Markdown('No file uploaded.'),
                                         style={'position':'absolute',
-                                               'top':'540px', 'left':f'{163+tabwidth}px',
-                                               'width':'300px', 'height':f'50px',
+                                               'top':'540px', 'left':f'{63+tabwidth}px',
+                                               'width':'500px', 'height':f'50px',
                                                'text-align':'center',
                                                #'border':'gray 1px solid'
                                               },
