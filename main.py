@@ -272,10 +272,14 @@ def load_uploaded_pdf(uploaded_filename, uploaded_file_content, old_pdf_info_s, 
     # Create images of each page of PDF
     # load annotations from cache
     anns_file = build_annotation_filename(annotation_name)
+    afile = os.path.basename(anns_file)
     if os.path.exists(anns_file):
+        print_and_log(f'file already exists. loading annotations ({afile})')
         with open(anns_file, 'rb') as f:
             annotations = pickle.load(f)
     else:
+        print_and_log(f'file doesnt already exist. creating new annotations ({afile})')
+
         # TODO: could do ML here to have better guesses
         # initialize all annotations (we know 1:1 match of textbox-to-annotation) to on
         annotations = {}
@@ -283,7 +287,7 @@ def load_uploaded_pdf(uploaded_filename, uploaded_file_content, old_pdf_info_s, 
             pg_tbs = textboxes[pageno]
             for j in range(len(pg_tbs)):
                 aid = f'span-{pageno}-{j}'
-                annotations[aid] = 0.3
+                annotations[aid] = 1
         
     # store metadata in the dcc.Store() variable
     pdf_info = {'annotation_name':annotation_name, 'textboxes':dict(textboxes), 
@@ -455,6 +459,9 @@ def update_pdf_info_router(uploaded_filename, uploaded_file_content,
                                                               old_pdf_info_s, current_pdf_name,
                                                               dropdown, dropdown_val)
         
+        # throw out old tabs (to avoid confusing update_page_tabs() with previous pdf's tabs)
+        tabs = tabs[:1]
+
         # If we didnt have ugly mega-callback, this would been able to figure on its own after the above finished
         new_dropdown_val = new_dropdown[0]['props']['value'] 
         new_tabs, new_pdf_info_s = update_page_tabs(new_dropdown_val, tabs, pdf_info_s)
