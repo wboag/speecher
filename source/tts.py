@@ -60,7 +60,7 @@ def text_to_mp3(text, name='', overwrite=False):
             print(text, file=f)
 
         # Save to file
-        wav_file = f'/tmp/{basename}.wav'
+        wav_file = f'/tmp/{basename}-{r}.wav'
         cmd = f'espeak -f {tmpfile} -s 200 -w {wav_file}'
         os.system(cmd)
         os.remove(tmpfile)
