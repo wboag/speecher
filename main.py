@@ -463,9 +463,7 @@ def update_pdf_info_router(uploaded_filename, uploaded_file_content,
                                                               old_pdf_info_s, current_pdf_name,
                                                               dropdown, dropdown_val)
         # If uploaded non-pdf, then dont change anything (including button activation)
-        print(pdfname)
         if 'File must end in ".pdf"' in pdfname.children:
-            print('here')
             updates = [dash.no_update for _ in range(9)]
             updates[3] = pdfname
             return updates
@@ -569,13 +567,24 @@ def text_to_speech(n_clicks, tabs, pdf_info_s):
     if dash.callback_context.triggered[0]['value'] is None:
         return 'ok'
     
-    # TODO: theres an error if the TTS button is pushed twice. should be fixed via long callback
+    # TODO: how to disable multiple clicks while button is thinking. long callbacks didnt work
     pass
 
     # Get state information from the html layout
     pdf_info = json.loads(pdf_info_s)
     textboxes = {int(k):v for k,v in pdf_info['textboxes'].items()}
     annotations = pdf_info['annotations']
+
+    # use 'annotations' for the inactive textboxes, but use the textbox colors themselves for active
+    # Amend annotations based on current boxes
+    for pg_node in tabs[1:]:
+        pg = pg_node['props']['children'][0]['props']['children']
+        for element in pg:
+            props = element['props']
+            if ('id' in props) and (re.search('span-\d+-\d+',props['id']['index'])):
+                current_background = props['style']['background-color']
+                opacity = float(re.search('rgba\(\d+,\d+,\d+,(\d?\.?\d+)\)', current_background).groups()[0])
+                annotations[props['id']['index']] = int(opacity>0)
 
     filename = pdf_info['annotation_name']
     print_and_log(f'TTS for {filename}')
