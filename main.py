@@ -256,7 +256,7 @@ def load_uploaded_pdf(uploaded_filename, uploaded_file_content, old_pdf_info_s, 
     ### Load and Process PDF
     # Save uploaded pdf to server
     save_file(uploaded_filename, uploaded_file_content)
-    
+
     # Which PDF is loaded
     pdf_file = f'static/assets/{uploaded_filename}'
     annotation_name = uploaded_filename
@@ -269,6 +269,7 @@ def load_uploaded_pdf(uploaded_filename, uploaded_file_content, old_pdf_info_s, 
     img_dir, page_images = pdf_to_images(pdf_file)
     w1, w2 = img_dir, page_images
 
+    # Create images of each page of PDF
     # load annotations from cache
     anns_file = build_annotation_filename(annotation_name)
     if os.path.exists(anns_file):
@@ -401,6 +402,15 @@ class ActivityLog(db.Model):
 
 
 
+@app.callback(
+    Output('not-needed', 'data'),
+    Input('not-needed', 'data'),
+)
+def run_on_refresh(data):
+    print_and_log('new session')
+
+
+
 # pdf_info updated by uploading new PDF _or_ saving annotations 
 @app.callback(
     [
@@ -424,7 +434,7 @@ class ActivityLog(db.Model):
      State('tabs-example-graph', 'value')
 
     ],
-    #prevent_initial_call=True
+    prevent_initial_call=True
 )
 def update_pdf_info_router(uploaded_filename, uploaded_file_content,
                       s_clicks,
@@ -437,7 +447,6 @@ def update_pdf_info_router(uploaded_filename, uploaded_file_content,
     triggered_id = dash.callback_context.triggered_id
     print_and_log(f'called {triggered_id}')
     if triggered_id is None:
-        print_and_log('new session')
         return  tabs, tabval, old_pdf_info_s, current_pdf_name, dropdown
 
         
@@ -466,7 +475,7 @@ def update_pdf_info_router(uploaded_filename, uploaded_file_content,
         return new_tabs, new_tabval, new_pdf_info_s, current_pdf_name, dropdown
 
     else:
-        print_and_log('PANIC!!! triggered_id=[{triggered_id}]')
+        print_and_log(f'PANIC!!! triggered_id=[{triggered_id}]')
         return tabs, tabval, old_pdf_info_s, current_pdf_name, dropdown
 
 
@@ -574,6 +583,11 @@ def text_to_speech(n_clicks, tabs, pdf_info_s):
     return [html.Source(src=mp3_filename, type='audio/mpeg')]
     
     
+
+
+#####################################
+##         Create App              ##
+#####################################
     
 # Make the app    
 boxsize = 20
@@ -634,7 +648,7 @@ app.layout = html.Div([
                      value='tab-home',
                      children=tabs,
                      persistence=True,
-                     persistence_type='local',
+                     persistence_type='session',
                      vertical=True,
                      style={'position':'absolute', 'top':'0px', 'left':'0px', 'width':f'{tabwidth}px'}
                     ),
