@@ -588,6 +588,12 @@ def text_to_speech(n_clicks, tabs, pdf_info_s):
 #####################################
 ##         Create App              ##
 #####################################
+
+intro_text = '''
+This app allows you to upload a ".pdf" file for the text to be read and turned into an mp3.
+
+Please be patient when clicking the buttons. If this tab says "Dash" then the app isn't thinking. If it says "Updating", then re-clicking a button will likely slow things by re-doing the work from the beginning.
+'''.strip()
     
 # Make the app    
 boxsize = 20
@@ -613,10 +619,51 @@ home_layout = html.Div(id=f'home-layout',
                                                  'width':'572px', 'height':'752px',
                                                  'borderRadius':'30px 30px',
                                                  'background-color':'rgba(240,255,240)'}),
+                                 html.P(dcc.Markdown('**Speecher**'),
+                                        style={'position':'absolute',
+                                               'top':'20px', 'left':f'{163+tabwidth}px',
+                                               'width':'300px', 'height':f'50px',
+                                               'text-align':'center',
+                                               'color':'purple', 'font-size':'35px',
+                                               #'border':'gray 1px solid'
+                                              },
+                                        id='speecher-logo'
+                                       ),
+                                 html.P(intro_text,
+                                        style={'position':'absolute',
+                                               'top':'160px', 'left':f'{50+tabwidth}px',
+                                               'width':'500px', 'height':f'50px',
+                                               'text-align':'center',
+                                               #'color':'red', 'font-size':'35px',
+                                              },
+                                        id='speecher-intro'
+                                       ),
+                                 html.P('How to use this tool',
+                                        style={'position':'absolute',
+                                               'top':'250px', 'left':f'{100+tabwidth}px',
+                                               'width':'300px', 'height':f'50px',
+                                               #'text-align':'center',
+                                               #'color':'red', 'font-size':'35px',
+                                              },
+                                        id='upload-instructions-preamble'
+                                       ),
+                                 html.Ul([html.Li('Upload pdf file in "Drag and Drop" box.'),
+                                          html.Li('Once the pdf finishes loading, use pages on the left to navigate to the pdf pages.'),
+                                          html.Li('Click textboxes to highlight/unhighlight them.'),
+                                          html.Li('Click "Create MP3" button once.'),
+                                          html.Li('Once the text-to-speech finishes, you can return to the Home page to listen to (and download) the audio in the mp3 player.'),
+                                         ],
+                                         style={'position':'absolute',
+                                                'top':'270px', 'left':f'{100+tabwidth}px',
+                                                'width':'300px', 'height':f'50px',
+                                                #'text-align':'center',
+                                                },
+                                         id='upload-instructions',
+                                 ),
                                  dcc.Upload(id="upload-data",
                                  #html.Button(id="upload-data",
                                             children=html.Div(["Drag and drop or click to select a file to upload."]),
-                                            style={'position':'absolute', 'top':'150px', 'left':f'{125+tabwidth}px',
+                                            style={'position':'absolute', 'top':'480px', 'left':f'{125+tabwidth}px',
                                                    "width": "350px", "height": "60px", "lineHeight": "60px",
                                                    "borderWidth": "1px", "borderStyle": "dashed", "borderRadius": "5px",
                                                    "textAlign": "center", "margin": "10px",
@@ -625,7 +672,7 @@ home_layout = html.Div(id=f'home-layout',
                                             ),
                                  html.P(dcc.Markdown('No file uploaded.'),
                                         style={'position':'absolute',
-                                               'top':'240px', 'left':f'{163+tabwidth}px',
+                                               'top':'540px', 'left':f'{163+tabwidth}px',
                                                'width':'300px', 'height':f'50px',
                                                'text-align':'center',
                                                #'border':'gray 1px solid'
@@ -657,6 +704,7 @@ app.layout = html.Div([
             # Save the textbox on/offs to allow for re-computation when paged back in
             dcc.Store(id='not-needed'),
             dcc.Store(id='pdf_info', data='', storage_type='memory'),
+
             html.Button('Save Annotations', id='save-ann-button',
                         style={'position':'absolute', 'top': '40px', 'left':f'{650+tabwidth}px',
                                'height':'30px', 'width':'150px',
