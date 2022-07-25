@@ -282,13 +282,19 @@ def load_uploaded_pdf(uploaded_filename, uploaded_file_content, old_pdf_info_s, 
         print_and_log(f'file doesnt already exist. creating new annotations ({afile})')
 
         # TODO: could do ML here to have better guesses
+        # For now, heuristic of "dont highlight small boxes" is good default for ignoring tables
         # initialize all annotations (we know 1:1 match of textbox-to-annotation) to on
         annotations = {}
         for pageno in range(len(textboxes)):
             pg_tbs = textboxes[pageno]
             for j in range(len(pg_tbs)):
                 aid = f'span-{pageno}-{j}'
-                annotations[aid] = 1
+                if pg_tbs[j]['height'] < 30:
+                    annotations[aid] = 0
+                elif pg_tbs[j]['width'] < 30:
+                    annotations[aid] = 0
+                else:
+                    annotations[aid] = 1
         
     # store metadata in the dcc.Store() variable
     pdf_info = {'annotation_name':annotation_name, 'textboxes':dict(textboxes), 
